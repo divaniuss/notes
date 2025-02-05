@@ -28,15 +28,61 @@ class Manager:
     def delete_note(self, title: str):
         self.notes = [note for note in self.notes if note.title != title]
 
-manager = Manager()
 
-note1 = Note.create("Tema", "some text")
-note2 = Note.create("Tema2", "some text2")
+class Menu:
+    def __init__(self):
+        self.manager = Manager()
 
+    def show_choices(self):
+        print("1. Add Note")
+        print("2. View All Notes")
+        print("3. Find Note by Title")
+        print("4. Delete Note")
+        print("5. Exit")
 
-manager.notes.append(note1)
-manager.notes.append(note2)
+    def run(self):
+        while True:
+            self.show_choices()
+            choice = input("Choose an option: ")
 
-for note in manager.get_all_notes():
-    print(note)
-    print('\n')
+            if choice == "1":
+                title = input("Введите название: ")
+                text = input("Введите текст: ")
+                note = Note.create(title, text)
+                self.manager.notes.append(note)
+                print("Добавлено")
+
+            elif choice == "2":
+                notes = self.manager.get_all_notes()
+                if notes:
+                    for note in notes:
+                        print("\n")
+                        print(note)
+                        print("\n")
+                else:
+                    print("Заметок нету.")
+
+            elif choice == "3":
+                title = input("Введите названия для поиска: ")
+                notes = self.manager.find_note(title)
+                if notes:
+                    for note in notes:
+                        print("\n")
+                        print(f"Заметка с названием {title}:")
+                        print(note)
+                        print("\n")
+                else:
+                    print("не найдена")
+
+            elif choice == "4":
+                title = input("Введите названия для удаления: ")
+                self.manager.delete_note(title)
+                print("Удалено.")
+            elif choice == "5":
+                print("Выход")
+                break
+            else:
+                print("Введите число от 1 до 5")
+
+menu = Menu()
+menu.run()
