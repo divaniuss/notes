@@ -28,6 +28,18 @@ class Manager:
     def delete_note(self, title: str):
         self.notes = [note for note in self.notes if note.title != title]
 
+    def save_to_file(self, file_path: str):
+        if not file_path.endswith(".txt"):
+            print("Файл должен иметь расширение .txt")
+            return
+        try:
+            with open(file_path, "w") as file:
+                for note in self.notes:
+                    file.write(str(note) + "\n\n")
+            print("Заметки сохранены")
+        except Exception as e:
+            print(f"Ошибка: {e}")
+
 
 class Menu:
     def __init__(self):
@@ -38,7 +50,8 @@ class Menu:
         print("2. View All Notes")
         print("3. Find Note by Title")
         print("4. Delete Note")
-        print("5. Exit")
+        print("5. Save to .txt file")
+        print("6. Exit")
 
     def run(self):
         while True:
@@ -78,11 +91,19 @@ class Menu:
                 title = input("Введите названия для удаления: ")
                 self.manager.delete_note(title)
                 print("Удалено.")
+
             elif choice == "5":
+                file_path = input("Введите путь к файлу (.txt): ")
+                self.manager.save_to_file(file_path)
+
+            elif choice == "6":
                 print("Выход")
                 break
             else:
-                print("Введите число от 1 до 5")
+                print("Введите число от 1 до 6")
+
+
+
 
 menu = Menu()
 menu.run()
