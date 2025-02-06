@@ -1,3 +1,5 @@
+import tkinter as tk
+from tkinter import messagebox
 from datetime import datetime
 
 
@@ -8,102 +10,157 @@ class Note:
         self.created_at = datetime.now()
 
     def __str__(self):
-        return f"{self.title} ({self.created_at})\n{self.text}"
-
-
-    def create(title, text):
-        return Note(title, text)
+        return f"{self.title} ({self.created_at.strftime('%Y-%m-%d %H:%M:%S')})\n{self.text}"
 
 
 class Manager:
     def __init__(self):
         self.notes = []
 
+    def add_note(self, title, text):
+        self.notes.append(Note(title, text))
+
     def get_all_notes(self):
         return self.notes
 
-    def find_note(self, title: str):
-        return [note for note in self.notes if note.title == title]
+    def find_note_by_title(self, title):
+        for note in self.notes:
+            if note.title == title:
+                return note
+        return None
 
-    def delete_note(self, title: str):
+    def delete_note_by_title(self, title):
         self.notes = [note for note in self.notes if note.title != title]
 
-    def save_to_file(self, file_path: str):
-        if not file_path.endswith(".txt"):
-            print("Файл должен иметь расширение .txt")
-            return
+    def save_to_file(self, file_path):
         try:
             with open(file_path, "w") as file:
                 for note in self.notes:
                     file.write(str(note) + "\n\n")
-            print("Заметки сохранены")
+            messagebox.showinfo("Успех", "Заметки сохранены")
         except Exception as e:
-            print(f"Ошибка: {e}")
+            messagebox.showerror("Ошибка", str(e))
 
 
-class Menu:
-    def __init__(self):
-        self.manager = Manager()
-
-    def show_choices(self):
-        print("1. Add Note")
-        print("2. View All Notes")
-        print("3. Find Note by Title")
-        print("4. Delete Note")
-        print("5. Save to .txt file")
-        print("6. Exit")
-
-    def run(self):
-        while True:
-            self.show_choices()
-            choice = input("Choose an option: ")
-
-            if choice == "1":
-                title = input("Введите название: ")
-                text = input("Введите текст: ")
-                note = Note.create(title, text)
-                self.manager.notes.append(note)
-                print("Добавлено")
-
-            elif choice == "2":
-                notes = self.manager.get_all_notes()
-                if notes:
-                    for note in notes:
-                        print("\n")
-                        print(note)
-                        print("\n")
-                else:
-                    print("Заметок нету.")
-
-            elif choice == "3":
-                title = input("Введите названия для поиска: ")
-                notes = self.manager.find_note(title)
-                if notes:
-                    for note in notes:
-                        print("\n")
-                        print(f"Заметка с названием {title}:")
-                        print(note)
-                        print("\n")
-                else:
-                    print("не найдена")
-
-            elif choice == "4":
-                title = input("Введите названия для удаления: ")
-                self.manager.delete_note(title)
-                print("Удалено.")
-
-            elif choice == "5":
-                file_path = input("Введите путь к файлу (.txt): ")
-                self.manager.save_to_file(file_path)
-
-            elif choice == "6":
-                print("Выход")
-                break
-            else:
-                print("Введите число от 1 до 6")
+manager = Manager()
 
 
+def add_note():
+    def save():
+        title = entry_title.get()
+        text = entry_text.get()
+        if title and text:
+            manager.add_note(title, text)
+            add_window.destroy()
+        else:
+            messagebox.showwarning("Ошибка", "Заполните все поля")
+
+    add_window = tk.Toplevel(root)
+    add_window.title("Добавить заметку")
+    add_window.geometry("400x300")
+
+    tk.Label(add_window, text='Введите название:').pack()
+    entry_title = tk.Entry(add_window, width=30)
+    entry_title.pack()
+
+    tk.Label(add_window, text='Введите текст:').pack()
+    entry_text = tk.Entry(add_window, width=30)
+    entry_text.pack()
+
+    tk.Button(add_window, text="Сохранить", command=save).pack()
 
 
-menu = Menu()
-menu.run()
+def view_notes():
+    view_window = tk.Toplevel(root)
+    view_window.title("Все заметки")
+    view_window.geometry("400x300")
+
+    notes = manager.get_all_notes()
+    if notes:
+        for note in notes:
+            tk.Label(view_window, text=str(note)).pack()
+    else:
+        tk.Label(view_window, text="Заметок нет").pack()
+
+
+def find_note():
+    def search():
+        title = entry_search.get()
+        note = manager.find_note_by_title(title)
+        label_result.config(text=str(note) if note else "Не найдено")
+
+    find_window = tk.Toplevel(root)
+    find_window.title("Поиск заметки")
+    find_window.geometry("400x300")
+
+    tk.Label(find_window, text="Введите название:").pack()
+    entry_search = tk.Entry(find_window, width=30)
+    entry_search.pack()
+
+    tk.Button(find_window, text="Поиск", command=search).pack()
+
+    label_result = tk.Label(find_window, text="")
+    label_result.pack()
+
+
+def delete_note():
+    def delete():
+        title = entry_delete.get()
+        manager.delete_note_by_title(title)
+        delete_window.destroy()
+
+    delete_window = tk.Toplevel(root)
+    delete_window.title("Удаление заметки")
+    delete_window.geometry("400x300")
+
+    tk.Label(delete_window, text="Введите название:").pack()
+    entry_delete = tk.Entry(delete_window, width=30)
+    entry_delete.pack()
+
+    tk.Button(delete_window, text="Удалить", command=delete).pack()
+
+
+def save_to_file():
+    def save():
+        file_path = entry_file.get()
+        manager.save_to_file(file_path)
+        save_window.destroy()
+
+    save_window = tk.Toplevel(root)
+    save_window.title("Сохранить в файл")
+    save_window.geometry("400x300")
+
+    tk.Label(save_window, text="Введите путь к файлу:").pack()
+    entry_file = tk.Entry(save_window, width=30)
+    entry_file.pack()
+
+    tk.Button(save_window, text="Сохранить", command=save).pack()
+
+
+def exit_app():
+    root.quit()
+
+
+root = tk.Tk()
+root.title("Заметки")
+root.geometry("600x600")
+
+btn_add = tk.Button(root, text="Add Note", command=add_note)
+btn_add.grid(row=0, column=0, padx=150, pady=100)
+
+btn_view = tk.Button(root, text="View All Notes", command=view_notes)
+btn_view.grid(row=0, column=1, padx=5, pady=5)
+
+btn_find = tk.Button(root, text="Find Note by Title", command=find_note)
+btn_find.grid(row=1, column=0, padx=5, pady=100)
+
+btn_delete = tk.Button(root, text="Delete Note", command=delete_note)
+btn_delete.grid(row=1, column=1, padx=5, pady=5)
+
+btn_save = tk.Button(root, text="Save to .txt file", command=save_to_file)
+btn_save.grid(row=2, column=0, padx=5, pady=80)
+
+btn_exit = tk.Button(root, text="Exit", command=exit_app)
+btn_exit.grid(row=2, column=1, padx=5, pady=5)
+
+root.mainloop()
